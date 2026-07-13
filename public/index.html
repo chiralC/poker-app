@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Velvet Poker Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,600&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --wood-rim: linear-gradient(135deg, #3d2314 0%, #2b180d 50%, #1c0f08 100%);
+    --wood-shine: inset 0 3px 0 rgba(255,255,255,0.15), inset 0 -3px 0 rgba(0,0,0,0.6), 0 12px 36px rgba(0,0,0,0.7);
+    --felt-3d: radial-gradient(circle at 50% 20%, #1b5e46 0%, #0d3829 65%, #051a13 100%);
+    --card-bg: linear-gradient(180deg, #1e1e1e 0%, #121212 100%);
+    --gold-foil: linear-gradient(135deg, #e8c766 0%, #c9a227 50%, #9c7a16 100%);
+    --gold-glow: 0 0 12px rgba(232, 199, 102, 0.4);
+    --cream: #fbf8f1;
+    --text-muted: rgba(251,248,241,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at center, #16222f 0%, #0b1017 100%);
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  /* --- LOUNGE / ENTERING SCREEN --- */
+  .lounge-container {
+    width: 100%;
+    max-width: 440px;
+    margin-top: 6vh;
+    background: rgba(10, 18, 26, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(232, 199, 102, 0.15);
+    border-radius: 24px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .lounge-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 32px;
+    background: var(--gold-foil);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .lounge-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+  .input-group { position: relative; margin-bottom: 20px; }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--cream);
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    transition: all 0.25s ease;
+  }
+  input:focus {
+    outline: none;
+    border-color: #e8c766;
+    box-shadow: 0 0 0 3px rgba(232, 199, 102, 0.15);
+  }
+  button {
+    width: 100%;
+    background: var(--gold-foil);
+    color: #121a24;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(201,162,39,0.3);
+    transition: all 0.2s ease;
+  }
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(232,199,102,0.4);
+    filter: brightness(1.1);
+  }
+  button.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: none;
+  }
+  button:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+  .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 24px 0; }
+  .hidden { display: none !important; }
+
+  /* --- 3D EYE-LEVEL TABLE --- */
+  #gameTheatre {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    perspective: 1400px;
+    padding-top: 20px;
+  }
+  .table-container-3d {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2.1 / 1;
+    background: var(--wood-rim);
+    border-radius: 160px;
+    padding: 22px;
+    box-shadow: var(--wood-shine);
+    transform: rotateX(26deg);
+    transform-style: preserve-3d;
+    margin-bottom: 20px;
+  }
+  .table-felt {
+    width: 100%; height: 100%;
+    background: var(--felt-3d);
+    border-radius: 140px;
+    position: relative;
+    box-shadow: inset 0 10px 50px rgba(0,0,0,0.7);
+    border: 2px solid rgba(0,0,0,0.5);
+  }
+  .table-content-flattened {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+  }
+
+  /* --- POT & BOARD --- */
+  .board-center {
+    position: absolute;
+    top: 46%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 50%;
+  }
+  .pot-box {
+    background: rgba(5, 12, 8, 0.7);
+    border: 1px solid #c9a227;
+    padding: 6px 18px;
+    border-radius: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    margin-bottom: 14px;
+  }
+  .pot-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
+  .pot-val { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700; color: #e8c766; }
+  .community-cards { display: flex; justify-content: center; gap: 8px; min-height: 82px; }
+
+  /* --- LUXURY CARD GRAPHICS --- */
+  .card {
+    width: 56px; height: 80px;
+    position: relative;
+    border-radius: 6px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+  }
+  .card-face {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: var(--card-bg);
+    border: 1.5px solid #c9a227;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+    color: #e8c766;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+  }
+  .card-face.red-suit { color: #ff5252; border-color: #ff5252; }
+  .card-top-left { display: flex; flex-direction: column; align-items: center; line-height: 1; font-size: 14px; }
+  .card-center-suit { align-self: center; font-size: 24px; margin-top: -4px; }
+  .card-back {
+    position: absolute;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(45deg, #07111a, #07111a 6px, #0e1e2e 6px, #0e1e2e 12px);
+    border: 1.5px solid #c9a227;
+    border-radius: 6px;
+  }
+  @keyframes dealSlide {
+    0% { transform: translateY(-160px) scale(0.2) rotate(-40deg); opacity: 0; }
+    100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+  }
+  .animate-deal { animation: dealSlide 0.4s cubic-bezier(0.18, 0.9, 0.32, 1.15) both; }
+
+  /* --- SEAT LAYOUTS --- */
+  .seat {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: rgba(6, 13, 20, 0.9);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 8px 12px;
+    min-width: 125px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .seat.active-turn {
+    border-color: #e8c766;
+    box-shadow: 0 0 14px rgba(232,199,102,0.4);
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  .seat.is-folded { opacity: 0.4; }
+  .seat-header { display: flex; justify-content: space-between; align-items: center; }
+  .seat-name { font-weight: 600; font-size: 13px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+  .seat-badge { font-size: 9px; padding: 1px 4px; background: #c9a227; color: #121a24; border-radius: 3px; font-weight: 700; }
+  .seat-chips { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #e8c766; margin-top: 2px; }
+
+  /* --- PHYSICAL PERSISTENT CHIPS --- */
+  .chip-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .live-bet-stack {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .token-disc {
+    width: 20px; height: 20px;
+    background: radial-gradient(circle, #e8c766 35%, #c9a227 70%, #614a09 100%);
+    border: 1.8px dashed #fff;
+    border-radius: 50%;
+    box-shadow: 0 3px 4px rgba(0,0,0,0.5);
+    margin-top: -14px;
+  }
+  .token-disc.red-chip { background: radial-gradient(circle, #ff6b6b 35%, #dc3545 70%, #5c0e16 100%); }
+  .bet-stack-value {
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(232,199,102,0.5);
+    color: #e8c766;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+  }
+
+  /* --- CONTROL DESK --- */
+  .hero-vault {
+    width: 100%; max-width: 480px;
+    background: rgba(10, 18, 26, 0.9);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 14px;
+    margin: 10px auto;
+    text-align: center;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+  }
+  .hero-vault-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 8px; }
+  .hero-cards-wrapper { display: flex; justify-content: center; gap: 12px; height: 86px; }
+
+  #actionConsole {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(7, 12, 18, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding: 16px 24px;
+    display: flex; gap: 12px;
+    justify-content: center; align-items: center;
+    z-index: 100;
+  }
+  .action-btn-cluster { display: flex; gap: 8px; flex-wrap: wrap; max-width: 750px; flex: 1; }
+  .action-btn-cluster button { flex: 1; min-width: 90px; padding: 12px; }
+  .raise-control { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); }
+  .raise-control input { width: 85px; border: none; background: transparent; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: #e8c766; }
+  .raise-control input:focus { outline: none; }
+
+  #dealerTicker {
+    width: 100%; max-width: 500px; height: 70px;
+    overflow-y: auto; background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px; padding: 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: var(--text-muted); border: 1px solid rgba(255,255,255,0.06);
+    margin: 12px auto 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="lounge-container" id="joinScreen">
+  <div class="lounge-title">Grand Velvet</div>
+  <div class="lounge-subtitle">High-Stakes Multiplayer Cardroom</div>
+  <div class="input-group"><input type="text" id="nameInput" placeholder="Enter Player Alias"></div>
+  <button id="createRoomBtn">Open New Table</button>
+  <div class="divider"></div>
+  <div class="input-group"><input type="text" id="roomInput" placeholder="Enter Table Code"></div>
+  <button id="joinRoomBtn" class="secondary">Join Existing Table</button>
+</div>
+
+<div class="lounge-container hidden" id="lobby">
+  <div class="lounge-title" style="font-size: 24px;">Table: <span id="roomCodeDisplay" style="color:#e8c766"></span></div>
+  <p style="font-size: 14px; margin-bottom: 20px;">Connected: <span id="lobbyPlayers" style="font-weight:600"></span></p>
+  <div style="display:flex; gap:10px; margin-bottom:10px;">
+    <input type="number" id="smallBlindInput" value="5">
+    <input type="number" id="bigBlindInput" value="10">
+  </div>
+  <input type="number" id="startingChipsInput" value="1000" style="margin-bottom:20px;">
+  <button id="startGameBtn">Buy In & Deal</button>
+</div>
+
+<div id="gameTheatre" class="hidden">
+  <div class="table-container-3d" id="tableContainer">
+    <div class="table-felt">
+      <div class="table-content-flattened" id="feltSurface">
+        <div class="chip-layer" id="persistentChipLayer"></div>
+        <div class="board-center">
+          <div class="pot-box">
+            <span class="pot-title">Pot</span>
+            <span class="pot-val" id="potDisplay">0</span>
+          </div>
+          <div class="community-cards" id="communityCards"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-vault">
+    <div class="hero-vault-label">Your Pocket Identity</div>
+    <div class="hero-cards-wrapper" id="myHand"></div>
+  </div>
+  <div id="dealerTicker"></div>
+</div>
+
+<div id="actionConsole" class="hidden">
+  <div class="action-btn-cluster">
+    <button id="foldBtn" class="secondary">Fold</button>
+    <button id="checkBtn">Check</button>
+    <button id="callBtn">Call</button>
+    <button id="allInBtn" class="secondary" style="color:#ff5252;">All In</button>
+    
+    <!-- PERMANENT NON-HIDDEN NEXT HAND BUTTON -->
+    <button id="nextHandBtn" style="background: var(--gold-foil); color: #121a24; font-weight: 700; border: 2px solid #fff; min-width: 130px;">
+      NEXT HAND ➔
+    </button>
+  </div>
+  <div class="raise-control">
+    <input type="number" id="raiseInput" placeholder="Amt">
+    <button id="raiseBtn" style="padding:10px 16px;">Raise</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+  let currentRoom = null;
+  let myName = null;
+  let lastCommunityCount = 0;
+  let lastHandKey = '';
+  let activeBetPiles = {};
+
+  const GLYPHS = { H: '&hearts;', D: '&diams;', C: '&clubs;', S: '&spades;' };
+  const IS_RED = { H: true, D: true, C: false, S: false };
+
+  function parseRankDisplay(r) { return r === '10' ? '10' : r.charAt(0); }
+
+  function createVisualCard(cardStr, animate = false) {
+    const el = document.createElement('div');
+    el.className = 'card' + (animate ? ' animate-deal' : '');
+    if (cardStr === 'hidden') {
+      el.innerHTML = `<div class="card-back"></div>`;
+    } else {
+      const suit = cardStr.slice(0, 1), rank = cardStr.slice(1);
+      const red = IS_RED[suit] ? ' red-suit' : '';
+      el.innerHTML = `
+        <div class="card-face${red}">
+          <div class="card-top-left"><div>${parseRankDisplay(rank)}</div><div style="font-size:10px">${GLYPHS[suit]}</div></div>
+          <div class="card-center-suit">${GLYPHS[suit]}</div>
+        </div>`;
+    }
+    return el;
+  }
+
+  function getTableSeatCoordinates(count) {
+    const coords = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
+      coords.push({ x: 50 + 43 * Math.cos(angle), y: 50 + 35 * Math.sin(angle), angle });
+    }
+    return coords;
+  }
+
+  function sweepChipsToCenter() {
+    const layer = document.getElementById('persistentChipLayer');
+    const table = document.getElementById('tableContainer');
+    if(!table) return;
+    const targetX = table.clientWidth * 0.5;
+    const targetY = table.clientHeight * 0.46;
+
+    Object.keys(activeBetPiles).forEach(name => {
+      const pile = document.getElementById(`pile-${name}`);
+      if (pile) {
+        pile.style.left = `${targetX}px`;
+        pile.style.top = `${targetY}px`;
+        pile.style.opacity = '0';
+        setTimeout(() => pile.remove(), 700);
+      }
+    });
+    activeBetPiles = {};
+  }
+
+  function renderPersistentChips(player, seatX, seatY, angle) {
+    const layer = document.getElementById('persistentChipLayer');
+    let pile = document.getElementById(`pile-${player.name}`);
+
+    if (player.currentBet <= 0) {
+      if (pile) { sweepChipsToCenter(); }
+      return;
+    }
+
+    const offsetX = Math.cos(angle) * -65;
+    const offsetY = Math.sin(angle) * -50;
+    const stackX = seatX + offsetX;
+    const stackY = seatY + offsetY;
+
+    if (!pile) {
+      pile = document.createElement('div');
+      pile.id = `pile-${player.name}`;
+      pile.className = 'live-bet-stack';
+      pile.style.left = `${seatX}px`;
+      pile.style.top = `${seatY}px`;
+      layer.appendChild(pile);
+      activeBetPiles[player.name] = true;
+    }
+
+    const chipCount = Math.min(Math.ceil(player.currentBet / 10), 6);
+    let tokenHTML = `<div class="bet-stack-value">$${player.currentBet}</div>`;
+    for (let i = 0; i < chipCount; i++) {
+      const variant = i % 2 === 0 ? ' red-chip' : '';
+      tokenHTML += `<div class="token-disc${variant}"></div>`;
+    }
+    pile.innerHTML = tokenHTML;
+
+    requestAnimationFrame(() => {
+      pile.style.left = `${stackX}px`;
+      pile.style.top = `${stackY}px`;
+    });
+  }
+
+  function logMessage(msg) {
+    const ticker = document.getElementById('dealerTicker');
+    if(!ticker) return;
+    const div = document.createElement('div');
+    div.innerHTML = `&raquo; ${msg}`;
+    ticker.prepend(div);
+  }
+
+  document.getElementById('createRoomBtn').addEventListener('click', () => {
+    myName = document.getElementById('nameInput').value.trim() || 'Player';
+    socket.emit('createRoom', myName);
+  });
+  document.getElementById('joinRoomBtn').addEventListener('click', () => {
+    myName = document.getElementById('nameInput').value.trim() || 'Player';
+    const code = document.getElementById('roomInput').value.trim().toUpperCase();
+    socket.emit('joinRoom', { roomCode: code, playerName: myName });
+  });
+  
+  socket.on('roomCreated', (code) => { currentRoom = code; renderLobby(code); });
+  socket.on('roomJoined', (code) => { currentRoom = code; renderLobby(code); });
+  socket.on('lobbyUpdate', (names) => document.getElementById('lobbyPlayers').textContent = names.join(', '));
+  
+  function renderLobby(code) {
+    document.getElementById('joinScreen').classList.add('hidden');
+    document.getElementById('lobby').classList.remove('hidden');
+    document.getElementById('roomCodeDisplay').textContent = code;
+  }
+
+  document.getElementById('startGameBtn').addEventListener('click', () => {
+    const smallBlind = Number(document.getElementById('smallBlindInput').value);
+    const bigBlind = Number(document.getElementById('bigBlindInput').value);
+    const startingChips = Number(document.getElementById('startingChipsInput').value);
+    socket.emit('startGame', { roomCode: currentRoom, smallBlind, bigBlind, startingChips });
+  });
+
+  socket.on('tableState', (state) => {
+    document.getElementById('lobby').classList.add('hidden');
+    document.getElementById('gameTheatre').classList.remove('hidden');
+    document.getElementById('actionConsole').classList.remove('hidden');
+    document.getElementById('actionConsole').querySelectorAll('button, input').forEach(el => el.disabled = false);
+
+    document.getElementById('potDisplay').textContent = state.pot;
+
+    const communityDiv = document.getElementById('communityCards');
+    communityDiv.innerHTML = '';
+    state.communityCards.forEach((card, idx) => {
+      communityDiv.appendChild(createVisualCard(card, idx >= lastCommunityCount));
+    });
+    lastCommunityCount = state.communityCards.length;
+
+    const me = state.players.find(p => p.name === myName);
+    const myHandDiv = document.getElementById('myHand');
+    myHandDiv.innerHTML = '';
+    if (me && me.hand.length) {
+      const handKey = me.hand.join(',');
+      const isFresh = handKey !== lastHandKey && !handKey.includes('hidden');
+      me.hand.forEach(card => myHandDiv.appendChild(createVisualCard(card, isFresh)));
+      if (isFresh) lastHandKey = handKey;
+    }
+
+    const surface = document.getElementById('feltSurface');
+    surface.querySelectorAll('.seat').forEach(s => s.remove());
+
+    const spatialCoords = getTableSeatCoordinates(state.players.length);
+    const totalW = document.getElementById('tableContainer').clientWidth;
+    const totalH = document.getElementById('tableContainer').clientHeight;
+
+    state.players.forEach((player, idx) => {
+      const seat = document.createElement('div');
+      seat.className = 'seat';
+      if (idx === state.currentPlayerIndex) seat.classList.add('active-turn');
+      if (player.folded) seat.classList.add('is-folded');
+
+      seat.style.left = `${spatialCoords[idx].x}%`;
+      seat.style.top = `${spatialCoords[idx].y}%`;
+
+      const dealerIcon = idx === state.dealerIndex ? `<span class="seat-badge">D</span>` : '';
+      seat.innerHTML = `
+        <div class="seat-header"><span class="seat-name">${player.name}</span>${dealerIcon}</div>
+        <div class="seat-chips">$${player.chips}</div>
+      `;
+      surface.appendChild(seat);
+
+      const absX = (spatialCoords[idx].x / 100) * totalW;
+      const absY = (spatialCoords[idx].y / 100) * totalH;
+      renderPersistentChips(player, absX, absY, spatialCoords[idx].angle);
+    });
+  });
+
+  const universalHandEndHandler = (data) => {
+    sweepChipsToCenter();
+    document.getElementById('actionConsole').querySelectorAll('button, input').forEach(el => el.disabled = false);
+    
+    if (data && data.revealedHands) {
+      data.revealedHands.forEach(r => logMessage(`<span style="color:#e8c766">${r.name}</span> turned over: ${r.hand.join(' ')}`));
+    }
+    if (data && data.results) {
+      data.results.forEach(r => logMessage(`Pot worth <span style="color:#e8c766">$${r.pot}</span> awarded to: <strong>${r.winners.join(', ')}</strong>`));
+    }
+    
+    lastCommunityCount = 0;
+    lastHandKey = '';
+  };
+
+  socket.on('handResult', universalHandEndHandler);
+  socket.on('gameOver', universalHandEndHandler);
+  socket.on('roundOver', universalHandEndHandler);
+  socket.on('showdown', universalHandEndHandler);
+  socket.on('roundEnd', universalHandEndHandler);
+  socket.on('actionError', (msg) => logMessage(`<span style="color:#ff5252">${msg}</span>`));
+
+  document.getElementById('checkBtn').addEventListener('click', () => socket.emit('playerAction', { roomCode: currentRoom, type: 'check' }));
+  document.getElementById('callBtn').addEventListener('click', () => socket.emit('playerAction', { roomCode: currentRoom, type: 'call' }));
+  document.getElementById('foldBtn').addEventListener('click', () => socket.emit('playerAction', { roomCode: currentRoom, type: 'fold' }));
+  document.getElementById('allInBtn').addEventListener('click', () => socket.emit('playerAction', { roomCode: currentRoom, type: 'allIn' }));
+  document.getElementById('raiseBtn').addEventListener('click', () => {
+    const amount = Number(document.getElementById('raiseInput').value);
+    socket.emit('playerAction', { roomCode: currentRoom, type: 'raise', amount });
+  });
+  document.getElementById('nextHandBtn').addEventListener('click', () => {
+    socket.emit('nextHand', currentRoom);
+  });
+</script>
+</body>
+</html>
